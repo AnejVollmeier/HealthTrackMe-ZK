@@ -1,7 +1,8 @@
 package com.healthwithme.api.service
 
-import com.healthwithme.api.dto.CreateUserRequest
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.healthwithme.api.dto.ChangePasswordRequest
+import com.healthwithme.api.dto.CreateUserRequest
 import com.healthwithme.api.dto.UpdateUserRequest
 import com.healthwithme.api.dto.UserDto
 import com.healthwithme.api.model.AuthProvider
@@ -9,7 +10,6 @@ import com.healthwithme.api.model.User
 import com.healthwithme.api.model.UserType
 import com.healthwithme.api.repository.FriendshipRepository
 import com.healthwithme.api.repository.UserRepository
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -29,7 +29,7 @@ class UserService(
         if (userRepository.existsByEmail(request.email)) {
             throw IllegalArgumentException("Email already exists")
         }
-        
+
         val user = User(
             email = request.email,
             passwordHash = passwordEncoder.encode(request.password),
@@ -42,7 +42,7 @@ class UserService(
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now()
         )
-        
+
         val savedUser = userRepository.save(user)
         return toUserDto(savedUser)
     }
@@ -139,7 +139,7 @@ class UserService(
         val normalizedUserType = request.userType?.trim()?.takeIf { it.isNotEmpty() }?.let {
             UserType.valueOf(it)
         } ?: user.userType
-        
+
         val updatedUser = user.copy(
             email = if (normalizedEmail.isNotEmpty()) normalizedEmail else user.email,
             firstName = request.firstName ?: user.firstName,
@@ -167,7 +167,7 @@ class UserService(
             isActive = request.isActive ?: user.isActive,
             updatedAt = LocalDateTime.now()
         )
-        
+
         val savedUser = userRepository.save(updatedUser)
         return toUserDto(savedUser)
     }
