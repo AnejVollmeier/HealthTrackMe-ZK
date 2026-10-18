@@ -41,11 +41,28 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x mvnw
 
-      - name: Test
-        run: ./mvnw clean test
+      - name: Test, build, and generate coverage
+        run: ./mvnw -B clean verify
 
-      - name: Build
-        run: ./mvnw package -DskipTests
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: apps/api/target/surefire-reports/
+          if-no-files-found: warn
+
+      - name: Verify coverage reports
+        run: |
+          test -s target/site/jacoco/index.html
+          test -s target/site/jacoco/jacoco.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: apps/api/target/site/jacoco/
+          if-no-files-found: error
 
       - name: Build Docker image
         run: |

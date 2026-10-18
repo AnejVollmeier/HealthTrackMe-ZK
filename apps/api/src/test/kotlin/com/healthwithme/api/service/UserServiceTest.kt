@@ -1,5 +1,6 @@
 package com.healthwithme.api.service
 
+import com.healthwithme.api.dto.ChangePasswordRequest
 import com.healthwithme.api.model.User
 import com.healthwithme.api.model.AuthProvider
 import com.healthwithme.api.model.UserType
@@ -7,10 +8,13 @@ import com.healthwithme.api.repository.FriendshipRepository
 import com.healthwithme.api.repository.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.assertj.core.api.Assertions.catchThrowable
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -89,6 +93,14 @@ class UserServiceTest {
         assertThat(result.lastName).isEqualTo("Novak")
         assertThat(result.userType).isEqualTo("PATIENT")
         assertThat(result.dateOfBirth).isEmpty()
+        val captor = ArgumentCaptor.forClass(User::class.java)
+        verify(userRepository).save(captor.capture())
+        assertAll(
+            { assertThat(captor.value.googleSub).isEqualTo("google-sub") },
+            { assertThat(captor.value.authProvider).isEqualTo(AuthProvider.GOOGLE) },
+            { assertThat(captor.value.passwordHash).isNull() },
+            { assertThat(captor.value.isActive).isTrue() }
+        )
     }
 
     @Test
@@ -127,9 +139,130 @@ class UserServiceTest {
 
     @Test
     fun `loginWithGoogle rejects unverified email`() {
-        assertThatThrownBy { userService.loginWithGoogle(googleUser(emailVerified = false)) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid Google token")
+        val error = catchThrowable { userService.loginWithGoogle(googleUser(emailVerified = false)) }
+        assertAll(
+            { assertThat(error).isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid Google token") },
+            { verify(userRepository, never()).save(any(User::class.java)) }
+        )
+    }
+
+    @Test
+    fun `changePassword saves encoded new password when current password is correct`() {
+        assertPasswordChangeSucceeds("new-password")
+    }
+
+    @Test
+    fun `changePassword accepts a new password with exactly six characters`() {
+        assertPasswordChangeSucceeds("new123")
+    }
+
+    @Test
+    fun `changePassword for linked LOCAL_GOOGLE account saves encoded local password`() {
+        assertPasswordChangeSucceeds("new-password", AuthProvider.LOCAL_GOOGLE)
+    }
+
+    @Test
+    fun `changePassword rejects a new password with five characters without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(newPassword = "12345"),
+            "New password must be at least 6 characters"
+        )
+    }
+
+    @Test
+    fun `changePassword rejects an empty new password without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(newPassword = ""),
+            "New password must be at least 6 characters"
+        )
+    }
+
+    @Test
+    fun `changePassword rejects an incorrect current password without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(currentPassword = "wrong-password"),
+            "Current password is incorrect"
+        )
+    }
+
+    @Test
+    fun `changePassword rejects mismatched confirmation without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(confirmPassword = "different-password"),
+            "New passwords do not match"
+        )
+    }
+
+    @Test
+    fun `changePassword rejects reusing the current password without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(newPassword = "secret"),
+            "New password must be different from the current password"
+        )
+    }
+
+    @Test
+    fun `changePassword rejects a nonexistent user without saving`() {
+        assertPasswordChangeRejected(passwordChange(), "User not found", existingUser = null)
+    }
+
+    @Test
+    fun `changePassword rejects an inactive user even with the correct password without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(),
+            "Current password is incorrect",
+            user(passwordHash = passwordEncoder.encode("secret"), isActive = false)
+        )
+    }
+
+    @Test
+    fun `changePassword rejects a Google-only user without a local password without saving`() {
+        assertPasswordChangeRejected(
+            passwordChange(),
+            "Password change is only available for password accounts",
+            user(passwordHash = null, authProvider = AuthProvider.GOOGLE, googleSub = "google-sub")
+        )
+    }
+
+    private fun passwordChange(
+        currentPassword: String = "secret",
+        newPassword: String = "new-password",
+        confirmPassword: String = newPassword
+    ) = ChangePasswordRequest(currentPassword, newPassword, confirmPassword)
+
+    private fun assertPasswordChangeSucceeds(newPassword: String, provider: AuthProvider = AuthProvider.LOCAL) {
+        val original = user(
+            passwordHash = passwordEncoder.encode("secret"),
+            authProvider = provider,
+            googleSub = if (provider == AuthProvider.LOCAL_GOOGLE) "google-sub" else null
+        )
+        `when`(userRepository.findById(original.id)).thenReturn(Optional.of(original))
+
+        val result = userService.changePassword(original.id, passwordChange(newPassword = newPassword))
+
+        assertThat(result).isTrue()
+        val captor = ArgumentCaptor.forClass(User::class.java)
+        verify(userRepository).save(captor.capture())
+        val saved = captor.value
+        assertThat(saved.passwordHash).isNotNull().isNotEqualTo(newPassword)
+        assertThat(passwordEncoder.matches(newPassword, saved.passwordHash)).isTrue()
+        assertThat(passwordEncoder.matches("secret", saved.passwordHash)).isFalse()
+        assertThat(saved.copy(passwordHash = original.passwordHash, updatedAt = original.updatedAt))
+            .isEqualTo(original)
+    }
+
+    private fun assertPasswordChangeRejected(
+        request: ChangePasswordRequest,
+        message: String,
+        existingUser: User? = user(passwordHash = passwordEncoder.encode("secret"))
+    ) {
+        `when`(userRepository.findById(1L)).thenReturn(Optional.ofNullable(existingUser))
+
+        val error = catchThrowable { userService.changePassword(1L, request) }
+        assertAll(
+            { assertThat(error).isInstanceOf(IllegalArgumentException::class.java).hasMessage(message) },
+            { verify(userRepository, never()).save(any(User::class.java)) }
+        )
     }
 
     private fun user(
