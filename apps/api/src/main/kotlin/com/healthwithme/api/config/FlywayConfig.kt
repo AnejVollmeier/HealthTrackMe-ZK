@@ -11,7 +11,6 @@ class FlywayConfig {
     @Bean
     fun flywayMigrationStrategy(): FlywayMigrationStrategy {
         return FlywayMigrationStrategy { flyway: Flyway ->
-            flyway.repair()
             flyway.migrate()
         }
     }

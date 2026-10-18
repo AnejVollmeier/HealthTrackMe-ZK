@@ -338,16 +338,16 @@ SELECT
     END,
     CASE WHEN gs.n::int % 6 = 0 THEN 'muscle soreness' ELSE NULL END,
     CASE WHEN gs.n::int % 4 = 0 THEN 'Hydration and recovery are on track.' ELSE 'Training load looks good.' END,
-    ROUND((79 + ((gs.n::int % 3) * 0.2))::numeric, 1),
+    NULL, -- sleep_hours: no duration supplied in this demo dataset
     CASE (gs.n::int % 3)
         WHEN 0 THEN 'GOOD'
         WHEN 1 THEN 'FAIR'
         ELSE 'EXCELLENT'
     END,
+    ROUND((79 + ((gs.n::int % 3) * 0.2))::numeric, 1),
     58 + (gs.n::int % 13),
     118 + (gs.n::int % 5),
     72 + (gs.n::int % 4),
-    NULL,
     NULL,
     36.4 + ((gs.n::int % 2) * 0.1),
     97 + (gs.n::int % 2),
@@ -403,16 +403,16 @@ SELECT
         ELSE NULL
     END,
     CASE WHEN gs.n::int % 5 = 0 THEN 'Keep up the walking routine.' ELSE 'Blood pressure plan is consistent.' END,
-    ROUND((71 + ((gs.n::int % 2) * 0.4))::numeric, 1),
+    NULL, -- sleep_hours: no duration supplied in this demo dataset
     CASE (gs.n::int % 3)
         WHEN 0 THEN 'GOOD'
         WHEN 1 THEN 'FAIR'
         ELSE 'EXCELLENT'
     END,
+    ROUND((71 + ((gs.n::int % 2) * 0.4))::numeric, 1),
     68 + (gs.n::int % 9),
     132 + (gs.n::int % 6),
     76 + (gs.n::int % 5),
-    NULL,
     NULL,
     36.6 + ((gs.n::int % 3) * 0.1),
     96 + (gs.n::int % 3),
@@ -637,8 +637,8 @@ WHERE u.email = 'sara@demo.com';
 
 -- 6) Dose logs
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '08:00',
-       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::timestamp + TIME '08:00' + make_interval(mins => (gs.n::int % 40)) END,
+SELECT m.id, gs.day_ts::date + TIME '08:00',
+       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::date + TIME '08:00' + make_interval(mins => (gs.n::int % 40)) END,
        CASE WHEN gs.n::int % 5 = 0 THEN 'MISSED' ELSE 'TAKEN' END,
        'Morning routine'
 FROM medicines m
@@ -647,8 +647,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'ana.novak@example.com' AND m.name = 'Ventolin Inhaler';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '20:00',
-       CASE WHEN gs.n::int % 6 = 0 THEN NULL ELSE gs.day_ts::timestamp + TIME '20:00' + make_interval(mins => (gs.n::int % 25)) END,
+SELECT m.id, gs.day_ts::date + TIME '20:00',
+       CASE WHEN gs.n::int % 6 = 0 THEN NULL ELSE gs.day_ts::date + TIME '20:00' + make_interval(mins => (gs.n::int % 25)) END,
        CASE WHEN gs.n::int % 6 = 0 THEN 'MISSED' ELSE 'TAKEN' END,
        'Allergy support'
 FROM medicines m
@@ -657,8 +657,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'ana.novak@example.com' AND m.name = 'Cetirizine';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '07:30',
-       gs.day_ts::timestamp + TIME '07:30' + make_interval(mins => (gs.n::int % 20)),
+SELECT m.id, gs.day_ts::date + TIME '07:30',
+       gs.day_ts::date + TIME '07:30' + make_interval(mins => (gs.n::int % 20)),
        'TAKEN',
        'Post-training recovery'
 FROM medicines m
@@ -667,8 +667,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'luka.horvat@example.com' AND m.name = 'Omega-3';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '21:00',
-       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::timestamp + TIME '21:00' + make_interval(mins => (gs.n::int % 15)) END,
+SELECT m.id, gs.day_ts::date + TIME '21:00',
+       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::date + TIME '21:00' + make_interval(mins => (gs.n::int % 15)) END,
        CASE WHEN gs.n::int % 5 = 0 THEN 'MISSED' ELSE 'TAKEN' END,
        'Recovery supplement'
 FROM medicines m
@@ -677,8 +677,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'luka.horvat@example.com' AND m.name = 'Magnesium';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '08:00',
-       gs.day_ts::timestamp + TIME '08:00' + make_interval(mins => (gs.n::int % 30)),
+SELECT m.id, gs.day_ts::date + TIME '08:00',
+       gs.day_ts::date + TIME '08:00' + make_interval(mins => (gs.n::int % 30)),
        'TAKEN',
        'Blood pressure control'
 FROM medicines m
@@ -687,8 +687,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'maja.kovac@example.com' AND m.name = 'Amlodipine';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '13:00',
-       CASE WHEN gs.n::int % 4 = 0 THEN NULL ELSE gs.day_ts::timestamp + TIME '13:00' + make_interval(mins => (gs.n::int % 20)) END,
+SELECT m.id, gs.day_ts::date + TIME '13:00',
+       CASE WHEN gs.n::int % 4 = 0 THEN NULL ELSE gs.day_ts::date + TIME '13:00' + make_interval(mins => (gs.n::int % 20)) END,
        CASE WHEN gs.n::int % 4 = 0 THEN 'SKIPPED' ELSE 'TAKEN' END,
        'As needed for pain'
 FROM medicines m
@@ -697,8 +697,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'maja.kovac@example.com' AND m.name = 'Paracetamol';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '10:00',
-       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::timestamp + TIME '10:00' + make_interval(mins => (gs.n::int % 45)) END,
+SELECT m.id, gs.day_ts::date + TIME '10:00',
+       CASE WHEN gs.n::int % 5 = 0 THEN NULL ELSE gs.day_ts::date + TIME '10:00' + make_interval(mins => (gs.n::int % 45)) END,
        CASE WHEN gs.n::int % 5 = 0 THEN 'MISSED' ELSE 'TAKEN' END,
        'Migraine rescue plan'
 FROM medicines m
@@ -707,8 +707,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'nina.zupan@example.com' AND m.name = 'Sumatriptan';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '22:00',
-       gs.day_ts::timestamp + TIME '22:00' + make_interval(mins => (gs.n::int % 20)),
+SELECT m.id, gs.day_ts::date + TIME '22:00',
+       gs.day_ts::date + TIME '22:00' + make_interval(mins => (gs.n::int % 20)),
        'TAKEN',
        'Sleep routine'
 FROM medicines m
@@ -717,8 +717,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'nina.zupan@example.com' AND m.name = 'Melatonin';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '08:00',
-       gs.day_ts::timestamp + TIME '08:00' + make_interval(mins => (gs.n::int % 30)),
+SELECT m.id, gs.day_ts::date + TIME '08:00',
+       gs.day_ts::date + TIME '08:00' + make_interval(mins => (gs.n::int % 30)),
        'TAKEN',
        'Morning dose'
 FROM medicines m
@@ -727,8 +727,8 @@ CROSS JOIN generate_series(CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE, INTE
 WHERE u.email = 'sara@demo.com' AND m.name = 'Metformin';
 
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
-SELECT m.id, gs.day_ts::timestamp + TIME '08:30',
-       gs.day_ts::timestamp + TIME '08:30' + make_interval(mins => (gs.n::int % 20)),
+SELECT m.id, gs.day_ts::date + TIME '08:30',
+       gs.day_ts::date + TIME '08:30' + make_interval(mins => (gs.n::int % 20)),
        'TAKEN',
        'Vitamin support'
 FROM medicines m

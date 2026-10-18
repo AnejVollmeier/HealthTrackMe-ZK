@@ -189,9 +189,9 @@ WHERE NOT EXISTS (SELECT 1 FROM activity_logs al WHERE al.user_id = (SELECT id F
 INSERT INTO dose_logs (medicine_id, scheduled_time, taken_time, status, note)
 SELECT
   m.id,
-  gs.day_ts + TIME '08:00',
+  gs.day_ts::date + TIME '08:00',
   CASE
-    WHEN random() < 0.8 THEN (gs.day_ts::timestamp + TIME '08:00' + make_interval(mins => (random()*60)::int))
+    WHEN random() < 0.8 THEN (gs.day_ts::date + TIME '08:00' + make_interval(mins => (random()*60)::int))
     ELSE NULL
   END AS taken_time,
   CASE
@@ -217,7 +217,7 @@ WHERE m.name IN ('Metformin','Lisinopril','Vitamin D','Aspirin','Ventolin Inhale
   AND NOT EXISTS (
     SELECT 1 FROM dose_logs d
     WHERE d.medicine_id = m.id
-    AND d.scheduled_time = (gs.day_ts + TIME '08:00')
+    AND d.scheduled_time = (gs.day_ts::date + TIME '08:00')
   );
 
 
