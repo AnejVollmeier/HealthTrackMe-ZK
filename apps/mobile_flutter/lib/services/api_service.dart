@@ -28,6 +28,10 @@ class ApiService {
   bool _sportActivitiesEndpointMissing = false;
 
   static String _resolveDefaultBaseUrl() {
+    const configuredUrl = String.fromEnvironment('API_BASE_URL');
+    if (configuredUrl.isNotEmpty) {
+      return configuredUrl;
+    }
     if (kIsWeb) {
       return _webDefault;
     }

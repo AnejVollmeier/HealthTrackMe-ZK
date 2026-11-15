@@ -1,0 +1,87 @@
+name: Functional E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/api/**'
+      - 'apps/mobile_flutter/**'
+      - '.github/workflows/functional-e2e.yml'
+      - '.github/scripts/functional_e2e.py'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/api/**'
+      - 'apps/mobile_flutter/**'
+      - '.github/workflows/functional-e2e.yml'
+      - '.github/scripts/functional_e2e.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: functional-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  functional-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      TZ: Europe/Ljubljana
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: apps/api/pom.xml
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+
+      - name: Install Chrome for Testing and matching ChromeDriver
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
+
+      - name: Resolve Flutter dependencies and analyze integration tests
+        working-directory: apps/mobile_flutter
+        timeout-minutes: 7
+        run: |
+          flutter config --enable-web
+          timeout --kill-after=15s 5m flutter pub get
+          timeout --kill-after=15s 2m flutter analyze integration_test test_driver
+
+      - name: Build API, start isolated services, and run all six cases
+        timeout-minutes: 50
+        env:
+          E2E_CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+          E2E_CHROMEDRIVER_BINARY: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: python3 .github/scripts/functional_e2e.py run
+
+      - name: Collect sanitized logs even after failure
+        if: always()
+        timeout-minutes: 2
+        run: python3 .github/scripts/functional_e2e.py collect
+
+      - name: Upload functional test logs and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: functional-e2e-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/functional-e2e/artifacts/
+          retention-days: 7
+          if-no-files-found: warn

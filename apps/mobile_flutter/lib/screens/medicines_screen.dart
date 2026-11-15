@@ -909,21 +909,26 @@ class _MedicinesScreenState extends State<MedicinesScreen>
               borderRadius: BorderRadius.circular(12),
             ),
             child: taken
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.check_rounded,
-                          size: 17, color: _success),
-                      const SizedBox(width: 4),
-                      Text(
-                        context.l10n.taken,
-                        style: const TextStyle(
-                          color: _success,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                ? FittedBox(
+                    // Keep the badge inside its animated width, including the
+                    // first frame after switching from the smaller take button.
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_rounded,
+                            size: 17, color: _success),
+                        const SizedBox(width: 4),
+                        Text(
+                          context.l10n.taken,
+                          style: const TextStyle(
+                            color: _success,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   )
                 : logging
                     ? const Center(

@@ -163,7 +163,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _userFuture = _loadUser());
+    final next = _loadUser();
+    setState(() {
+      _userFuture = next;
+    });
     await _userFuture;
   }
 
