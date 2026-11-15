@@ -4,11 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main, develop]
-    paths:
-      - 'apps/api/**'
-      - 'apps/mobile_flutter/**'
-      - '.github/workflows/functional-e2e.yml'
-      - '.github/scripts/functional_e2e.py'
   pull_request:
     branches: [main, develop]
     paths:
