@@ -1,0 +1,39 @@
+﻿Summary,Issue key,Issue id,Issue Type,Status,Project key,Project name,Project type,Project lead,Project lead id,Project description,Priority,Resolution,Assignee,Assignee Id,Reporter,Reporter Id,Creator,Creator Id,Created,Updated,Last Viewed,Resolved,Due date,Votes,Description,Environment,Watchers,Watchers Id,Original estimate,Remaining Estimate,Time Spent,Work Ratio,Σ Original Estimate,Σ Remaining Estimate,Σ Time Spent,Security Level,Custom field (App Version),Custom field (Browser),Custom field (Bug Classification),Custom field (Development),Custom field (Issue color),Custom field (Rank),Custom field (Severity),Custom field (Start date),Custom field (Team),Custom field (Test Case ID),Custom field (Vulnerability),Comment,Status category,Status category changed
+Incorrect medication dose status recorded,KAN-4,10013,Bug,Closed,KAN,HealthTrackMe-ZK,software,anej vollmeier,712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8,,High,Done,anej vollmeier,712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8,anej vollmeier,712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8,anej vollmeier,712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8,24/Nov/26 8:32 PM,24/Nov/26 8:39 PM,24/Nov/26 8:44 PM,24/Nov/26 8:37 PM,,0,"*Testni primer:* FS-02-TP01
+
+*Opis napake:*
+
+Aplikacija HealthTrackMe pri beleženju zaužitega odmerka zdravila nepravilno shrani status SKIPPED (preskočen odmerek) namesto TAKEN (zaužit odmerek).
+
+*Koraki za reprodukcijo napake:*
+
+# Prijavimo se v aplikacijo HealthTrackMe.
+# Dodamo novo zdravilo.
+# Odmerek zdravila označimo kot zaužit (TAKEN).
+# Preverimo shranjeni status odmerka.
+
+*Pričakovani rezultat:*
+
+Aplikacija mora odmerek pravilno zabeležiti s statusom TAKEN, saj je uporabnik označil, da je zdravilo zaužil.
+
+*Dejanski rezultat:*
+
+Aplikacija odmerek nepravilno zabeleži s statusom SKIPPED, čeprav ga je uporabnik označil kot zaužitega.
+
+*Dokaz napake:*
+
+Pri 5. nalogi smo namenoma spremenili programsko kodo tako, da je aplikacija namesto statusa TAKEN beležila SKIPPED. Avtomatizirani funkcionalni test FS-02-TP01 je zato prešel iz PASS v FAIL.
+
+Test je prikazal odstopanje med pričakovano vrednostjo 1 in dejansko vrednostjo 0.
+
+*Odprava napake:*
+
+Po zaznani napaki smo obnovili prvotno programsko kodo. Funkcionalni test smo ponovno izvedli in uspešno zaključili (PASS).
+
+*Opomba:*
+
+Napaka je bila namenoma povzročena pri 5. nalogi, da bi preverili učinkovitost avtomatiziranega testiranja. Napaka je bila odpravljena in trenutno ni prisotna v aplikaciji.",,anej vollmeier,712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8,,,,,,,,,1.1.0+2,Google Chrome,Bug,{},,0|i0002w:,Major,,,FS-02-TP01,,"24/Nov/26 8:39 PM;712020:7c4e3a41-00cf-4f80-bc77-2e287fc1d5f8;Napaka je bila odpravljena z obnovitvijo pravilne programske kode za beleženje odmerkov zdravil.
+
+Po odpravi smo ponovno izvedli avtomatizirani funkcionalni test FS-02-TP01, ki je bil uspešen (PASS).
+
+Napaka je bila namenoma povzročena pri 5. nalogi za preverjanje učinkovitosti avtomatiziranih testov. Po uspešnem ponovnem testiranju je bila zaključena.",Done,24/Nov/26 8:37 PM
