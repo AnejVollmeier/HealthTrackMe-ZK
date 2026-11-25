@@ -1,22 +1,21 @@
-
 # Naloga 5 – Avtomatizirano funkcionalno testiranje
 
 ## 1. Izbira orodja
 
-Za avtomatizacijo funkcionalnih testov sem uporabil **Flutter integration_test**, ChromeDriver in Chrome for Testing. Orodja omogočajo samodejno testiranje aplikacije tudi brez grafičnega vmesnika (headless).
+Za avtomatizacijo funkcionalnih testov sem uporabil **Flutter integration_test**, ChromeDriver(oz. EdgeDriver) in Chrome for Testing. Orodja omogočajo samodejno testiranje aplikacije tudi brez grafičnega vmesnika (headless).
 
 ## 2. Izvedba testov
 
 Avtomatiziral sem vseh šest funkcionalnih testov iz Naloge 3.
 
-| Test | Opis | Rezultat |
-|---|---|---|
-| FS-01-TP01 | Registracija, odjava in prijava | PASS |
-| FS-01-TP02 | Prijava z napačnim geslom | PASS |
-| FS-02-TP01 | Dodajanje zdravila in odmerek TAKEN | PASS |
-| FS-02-TP02 | Zavrnitev praznega imena zdravila | PASS |
-| FS-03-TP01 | Pošiljanje in sprejem prijateljstva | PASS |
-| FS-03-TP02 | Zavrnitev dodajanja samega sebe | PASS |
+| Test       | Opis                                | Rezultat |
+| ---------- | ----------------------------------- | -------- |
+| FS-01-TP01 | Registracija, odjava in prijava     | PASS     |
+| FS-01-TP02 | Prijava z napačnim geslom           | PASS     |
+| FS-02-TP01 | Dodajanje zdravila in odmerek TAKEN | PASS     |
+| FS-02-TP02 | Zavrnitev praznega imena zdravila   | PASS     |
+| FS-03-TP01 | Pošiljanje in sprejem prijateljstva | PASS     |
+| FS-03-TP02 | Zavrnitev dodajanja samega sebe     | PASS     |
 
 **Rezultat: 6/6 PASS.** Teste sem izvajal z ločeno podatkovno bazo `healthtrackme_e2e`.
 
